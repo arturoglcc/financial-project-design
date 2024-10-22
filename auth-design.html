@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>authentication</title>
+    <script type="module">
+        // Load Mermaid from CDN
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        // Initialize Mermaid to automatically process diagrams on load
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</head>
+
+<body>
+    <h1>authentication class Diagram</h1>
+    <!-- Mermaid class diagram code -->
+    <div class="mermaid">
+        classDiagram
+    class User {
+        +int user_id
+        +String email
+        +String username
+        +String password_hashed
+        +String salt
+        -User(Int id, String email, String username, String password_hashed, String salt)
+    }
+
+    class UserBuilder {
+        -String email
+        -String username
+        -String password
+        -String salt
+        -String password_hash
+        +UserBuilder(String email, String username, String password)
+        +build() User
+    }
+
+    class UserController {
+        +createUser(String email, String username, String password) User
+        +verificarCuenta(String token)
+        +Login(String UsernameOrPassword, String Password) : token
+    }
+
+    class UserService {
+        +createUser(String email, String username, String password)
+        +verificarCuenta(String token)
+        +getUserData(String UsernameOrPassword) : User
+    }
+    
+
+    class PasswordManager {
+        +hashPassword(String password, String salt) String
+        +generateSalt() String
+    }
+
+    class SessionManager {
+        +createSession(User user) token
+        +validateSession(String token) Int
+        +invalidateSession(String token)
+    }
+
+    class EmailService {
+        +sendVerificationEmail(String email, String verificationLink)
+        +sendPasswordResetEmail(String email, String resetLink)
+    }
+
+    class UsersDatabase {
+        +int user_id
+        +email : String
+        +username : String
+        +password_hash : String
+        +salt : String
+    }
+
+    class notVerifiedUsersDB {
+        +int user_id
+        +String email
+        +String username
+        +String password_hash
+        +String salt
+        +String token_verificacion
+        +Date fecha_expiracion
+    }
+
+    %% Nota sobre sendVerificationEmail %%
+    note for EmailService "sendVerificationEmail primero verifica que el formato del email sea válido.
+    Si es válido, envía el enlace de verificación al correo proporcionado."
+
+    note for SessionManager "
+    createSession(User user):
+    - Genera un token único (JWT) para la sesión del usuario.
+    - El token se devuelve al cliente y se usa para identificar al usuario en futuras solicitudes.
+
+    validateSession(String token):
+    - Verifica si el token de sesión es válido.
+    - Si el token es válido, Se devuelve el ID del usuario.
+    - Si no es válido, se solicita al usuario que inicie sesión de nuevo.
+
+    invalidateSession(String token):
+    - Invalida el token de sesión, cerrando la sesión del usuario.
+    - El token ya no será válido para futuras solicitudes.
+    "
+
+    UserController  -- >  SessionManager : manages
+    UserController -- > UserService : uses
+    UserController -- > PasswordManager : uses 
+    UserService -- >  notVerifiedUsersDB : manages
+    UserService -- >  UsersDatabase : manages
+    UserService -- > UserBuilder : uses
+    UserBuilder  -- >  PasswordManager : uses
+    UserBuilder -- > User : creates
+    UserBuilder  -- >  EmailService : verifies
+    UserBuilder -- > UsersDatabase : verifies
+    UserBuilder -- > notVerifiedUsersDB : verifies
+
+    </div>
+</body>
+</html>
